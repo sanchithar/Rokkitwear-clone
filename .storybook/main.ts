@@ -4,8 +4,12 @@ import { dirname } from 'node:path';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
-  stories: ['../src/app/**/*.@(mdx|stories.@(js|jsx|ts|tsx))'],
-  addons: [],
+  stories: [
+    '../src/app/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../src/components/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+    '../src/pages/**/*.@(mdx|stories.@(js|jsx|ts|tsx))',
+  ],
+  addons: ['@storybook/addon-essentials', '@storybook/addon-interactions'],
   framework: {
     name: getAbsolutePath('@storybook/react-vite'),
     options: {
