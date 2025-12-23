@@ -1,88 +1,45 @@
 import { useState, useMemo } from 'react';
-import { Box } from '@mui/material';
+import { Box, CircularProgress, Typography, Alert } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header';
 import { HeroSection } from '../../components/HeroSection';
 import { ProductFilters, SortOption, CategoryFilter } from '../../components/ProductFilters';
 import { ProductGrid } from '../../components/ProductGrid';
-import { Product } from '../../types/product';
+import { Product, convertToProduct } from '../../types/product';
+import { getSchool, getProducts } from '../../services/schoolService';
+import { useCart } from '../../context/CartContext';
 import './SchoolLandingPage.scss';
 
-// Mock product data - replace with API call later
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Bors House Classic T-Shirt',
-    price: 24.99,
-    image: 'https://via.placeholder.com/300x300/1976d2/ffffff?text=T-Shirt',
-    category: 'Men',
-    popularity: 95,
-  },
-  {
-    id: '2',
-    name: 'Bors House Hoodie',
-    price: 49.99,
-    image: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Hoodie',
-    category: 'Men',
-    popularity: 90,
-  },
-  {
-    id: '3',
-    name: 'Women\'s Bors House Tee',
-    price: 24.99,
-    image: 'https://via.placeholder.com/300x300/f093fb/ffffff?text=Women+Tee',
-    category: 'Women',
-    popularity: 88,
-  },
-  {
-    id: '4',
-    name: 'Kids Bors House Jersey',
-    price: 29.99,
-    image: 'https://via.placeholder.com/300x300/4facfe/ffffff?text=Kids+Jersey',
-    category: 'Kids',
-    popularity: 85,
-  },
-  {
-    id: '5',
-    name: 'Bors House Cap',
-    price: 19.99,
-    image: 'https://via.placeholder.com/300x300/00f2fe/ffffff?text=Cap',
-    category: 'Accessories',
-    popularity: 80,
-  },
-  {
-    id: '6',
-    name: 'Premium Bors House Polo',
-    price: 39.99,
-    image: 'https://via.placeholder.com/300x300/43e97b/ffffff?text=Polo',
-    category: 'Men',
-    popularity: 92,
-  },
-  {
-    id: '7',
-    name: 'Women\'s Bors House Hoodie',
-    price: 49.99,
-    image: 'https://via.placeholder.com/300x300/fa709a/ffffff?text=Women+Hoodie',
-    category: 'Women',
-    popularity: 87,
-  },
-  {
-    id: '8',
-    name: 'Bors House Backpack',
-    price: 34.99,
-    image: 'https://via.placeholder.com/300x300/fee140/333333?text=Backpack',
-    category: 'Accessories',
-    popularity: 75,
-  },
-];
+const SCHOOL_ID = '366997'; // Bors House ID
 
 export const SchoolLandingPage = () => {
-  const [cartItemCount] = useState(3); // Mock cart count
+  const navigate = useNavigate();
+  const { getItemCount } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedSort, setSelectedSort] = useState<SortOption>('popularity');
 
+  // Fetch school details
+  const { data: school, isLoading: schoolLoading, error: schoolError } = useQuery({
+    queryKey: ['school', SCHOOL_ID],
+    queryFn: () => getSchool(SCHOOL_ID),
+  });
+
+  // Fetch products
+  const { data: backendProducts, isLoading: productsLoading, error: productsError } = useQuery({
+    queryKey: ['products', SCHOOL_ID],
+    queryFn: () => getProducts(SCHOOL_ID),
+  });
+
+  // Convert backend products to frontend format
+  const products: Product[] = useMemo(() => {
+    if (!backendProducts) return [];
+    return backendProducts.map(convertToProduct);
+  }, [backendProducts]);
+
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = mockProducts;
+    let filtered = products;
 
     // Filter by category
     if (selectedCategory !== 'All') {
@@ -104,20 +61,59 @@ export const SchoolLandingPage = () => {
     });
 
     return sorted;
-  }, [selectedCategory, selectedSort]);
+  }, [products, selectedCategory, selectedSort]);
 
   const handleCustomize = (product: Product) => {
-    console.log('Customize product:', product);
-    // TODO: Navigate to customization page
+    navigate(`/product/${product.id}`);
   };
+
+  // Loading state
+  if (schoolLoading || productsLoading) {
+    return (
+      <Box className="school-landing-page">
+        <Header cartItemCount={getItemCount()} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Box>
+    );
+  }
+
+  // Error state
+  if (schoolError || productsError) {
+    return (
+      <Box className="school-landing-page">
+        <Header cartItemCount={getItemCount()} />
+        <Box sx={{ padding: 4 }}>
+          <Alert severity="error">
+            {schoolError ? 'Failed to load school details. ' : ''}
+            {productsError ? 'Failed to load products. ' : ''}
+            Please make sure the backend server is running on http://localhost:3333
+          </Alert>
+        </Box>
+      </Box>
+    );
+  }
+
+  // No school data
+  if (!school) {
+    return (
+      <Box className="school-landing-page">
+        <Header cartItemCount={getItemCount()} />
+        <Box sx={{ padding: 4 }}>
+          <Typography variant="h5">School not found</Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box className="school-landing-page">
-      <Header cartItemCount={cartItemCount} />
+      <Header cartItemCount={getItemCount()} />
       <HeroSection
-        schoolName="Bors House"
-        location="Kansas City, Missouri"
-        bannerImage="https://via.placeholder.com/1920x400/667eea/ffffff?text=Bors+House+Banner"
+        schoolName={school.name}
+        location={school.location}
+        bannerImage={school.bannerUrl}
       />
       <ProductFilters
         onCategoryChange={setSelectedCategory}
