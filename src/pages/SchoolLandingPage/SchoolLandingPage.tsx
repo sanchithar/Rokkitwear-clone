@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '../../components/Header';
 import { HeroSection } from '../../components/HeroSection';
 import { ProductFilters, SortOption, CategoryFilter } from '../../components/ProductFilters';
 import { ProductGrid } from '../../components/ProductGrid';
 import { Product, convertToProduct } from '../../types/product';
-import { getSchool, getProducts } from '../../services/schoolService';
+import { useSchoolData, useProductsData } from '../../hooks';
 import { useCart } from '../../context/CartContext';
 import './SchoolLandingPage.scss';
 
@@ -20,16 +19,10 @@ export const SchoolLandingPage = () => {
   const [selectedSort, setSelectedSort] = useState<SortOption>('popularity');
 
   // Fetch school details
-  const { data: school, isLoading: schoolLoading, error: schoolError } = useQuery({
-    queryKey: ['school', SCHOOL_ID],
-    queryFn: () => getSchool(SCHOOL_ID),
-  });
+  const { data: school, isLoading: schoolLoading, error: schoolError } = useSchoolData(SCHOOL_ID);
 
   // Fetch products
-  const { data: backendProducts, isLoading: productsLoading, error: productsError } = useQuery({
-    queryKey: ['products', SCHOOL_ID],
-    queryFn: () => getProducts(SCHOOL_ID),
-  });
+  const { data: backendProducts, isLoading: productsLoading, error: productsError } = useProductsData(SCHOOL_ID);
 
   // Convert backend products to frontend format
   const products: Product[] = useMemo(() => {

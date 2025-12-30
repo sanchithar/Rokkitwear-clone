@@ -14,10 +14,9 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
 import { Header } from '../../components/Header';
 import { ColorSelector } from '../../components/ColorSelector';
-import { getProduct } from '../../services/schoolService';
+import { useProductData } from '../../hooks';
 import { useCart } from '../../context/CartContext';
 import './ProductDetailPage.scss';
 
@@ -32,11 +31,7 @@ export const ProductDetailPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const { data: product, isLoading, error: fetchError } = useQuery({
-    queryKey: ['product', productId],
-    queryFn: () => getProduct(productId!),
-    enabled: !!productId,
-  });
+  const { data: product, isLoading, error: fetchError } = useProductData(productId);
 
   const handleAddToCart = () => {
     if (!selectedColor || !selectedSize) {
