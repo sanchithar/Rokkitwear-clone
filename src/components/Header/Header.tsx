@@ -19,15 +19,17 @@ import './Header.scss';
 
 interface HeaderProps {
   cartItemCount?: number;
+  onSearch?: (query: string) => void;
 }
 
-export const Header = ({ cartItemCount = 0 }: HeaderProps) => {
+export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchQuery);
+    if (onSearch) {
+      onSearch(searchQuery);
+    }
   };
 
   return (

@@ -17,6 +17,7 @@ export const SchoolLandingPage = () => {
   const { getItemCount } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedSort, setSelectedSort] = useState<SortOption>('popularity');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch school details
   const { data: school, isLoading: schoolLoading, error: schoolError } = useSchoolData(SCHOOL_ID);
@@ -30,9 +31,19 @@ export const SchoolLandingPage = () => {
     return backendProducts.map(convertToProduct);
   }, [backendProducts]);
 
-  // Filter and sort products
+  // Filter, search and sort products
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(query) ||
+          product.category.toLowerCase().includes(query)
+      );
+    }
 
     // Filter by category
     if (selectedCategory !== 'All') {
@@ -54,7 +65,7 @@ export const SchoolLandingPage = () => {
     });
 
     return sorted;
-  }, [products, selectedCategory, selectedSort]);
+  }, [products, selectedCategory, selectedSort, searchQuery]);
 
   const handleCustomize = (product: Product) => {
     navigate(`/product/${product.id}`);
@@ -64,7 +75,7 @@ export const SchoolLandingPage = () => {
   if (schoolLoading || productsLoading) {
     return (
       <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} />
+        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CircularProgress />
         </Box>
@@ -76,7 +87,7 @@ export const SchoolLandingPage = () => {
   if (schoolError || productsError) {
     return (
       <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} />
+        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error">
             {schoolError ? 'Failed to load school details. ' : ''}
@@ -92,7 +103,7 @@ export const SchoolLandingPage = () => {
   if (!school) {
     return (
       <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} />
+        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
         <Box sx={{ padding: 4 }}>
           <Typography variant="h5">School not found</Typography>
         </Box>
@@ -102,7 +113,7 @@ export const SchoolLandingPage = () => {
 
   return (
     <Box className="school-landing-page">
-      <Header cartItemCount={getItemCount()} />
+      <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
       <HeroSection
         schoolName={school.name}
         location={school.location}
