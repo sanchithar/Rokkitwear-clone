@@ -91,7 +91,7 @@ export const SchoolLandingPage = () => {
   if (isAnyLoading) {
     return (
       <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
+        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} searchQuery={searchQuery}/>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CircularProgress />
         </Box>
@@ -103,7 +103,7 @@ export const SchoolLandingPage = () => {
   if ((selectedSchoolId && schoolError) || productsError) {
     return (
       <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
+        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} searchQuery={searchQuery} />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error">
             {selectedSchoolId && schoolError ? 'Failed to load school details. ' : ''}
@@ -122,7 +122,7 @@ export const SchoolLandingPage = () => {
 
   return (
     <Box className="school-landing-page">
-      <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
+      <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} searchQuery={searchQuery} />
       <HeroSection
         schoolName={heroName}
         location={heroLocation}

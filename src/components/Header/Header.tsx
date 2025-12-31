@@ -24,11 +24,12 @@ import './Header.scss';
 
 interface HeaderProps {
   cartItemCount?: number;
-  onSearch?: (query: string) => void;
+  onSearch: (query: string) => void;
+  searchQuery: string;
 }
 
-export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
-  const [searchQuery, setSearchQuery] = useState('');
+export const Header = ({ cartItemCount = 0, onSearch, searchQuery }: HeaderProps) => {
+  // const [searchQuery, setSearchQuery] = useState(''); use this when you want to search on submit else pass searchQuery directly from app
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -36,7 +37,9 @@ export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
 
   // derive current selected school id from URL query param
   const params = new URLSearchParams(location.search);
-  const currentSchoolId = params.get('schoolId');
+  const schoolIdParam = params.get('schoolId');
+  // treat null or empty string as 'all'
+  const currentSchoolId = schoolIdParam && schoolIdParam.trim() ? schoolIdParam : 'all';
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -69,7 +72,7 @@ export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
             size="small"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearch(e.target.value)}
             className="header__search-input"
             InputProps={{
               endAdornment: (
@@ -94,7 +97,7 @@ export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
               <InputLabel id="header-school-select-label">Schools</InputLabel>
               <Select
                 labelId="header-school-select-label"
-                value={currentSchoolId ?? 'all'}
+                value={currentSchoolId}
                 label="Schools"
                 onChange={(e) => {
                   const id = e.target.value as string;
@@ -104,15 +107,8 @@ export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
                     navigate(`/schools?schoolId=${encodeURIComponent(id)}`);
                   }
                 }}
-                displayEmpty
-                renderValue={(value) => {
-                  const val = value as string;
-                  if (!val || val === 'all') return 'All Schools';
-                  const found = (schoolsList || []).find((s) => s.id === val);
-                  return found ? found.name : 'Schools';
-                }}
               >
-                <MenuItem value={'all'}>All Schools</MenuItem>
+                <MenuItem value="all">All Schools</MenuItem>
                 {schoolsList.map((s) => (
                   <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
                 ))}
