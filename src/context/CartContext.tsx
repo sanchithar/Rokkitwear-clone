@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { CartItem } from '../types/cart';
 
 interface CartContextType {
@@ -25,8 +25,22 @@ interface CartProviderProps {
   children: ReactNode;
 }
 
+const CART_STORAGE_KEY = 'rokkitwear_cart';
+
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Save cart to localStorage whenever items change
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {

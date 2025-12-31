@@ -26,7 +26,7 @@ const validationSchema = yup.object({
   shipping: yup.object({
     name: yup.string().required('Name is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
-    phone: yup.string().required('Phone is required'),
+    phone: yup.string().required('Phone is required').matches(/^\d+$/, 'Phone must contain only numbers'),
     street: yup.string().required('Street address is required'),
     city: yup.string().required('City is required'),
     state: yup.string().required('State is required'),
@@ -92,26 +92,36 @@ export const CheckoutPage = () => {
     },
   });
 
-  const handleNext = () => {
+  const isShippingComplete = () => {
+    const s = formik.values.shipping as Record<string, any>;
+    const keys = ['name', 'email', 'phone', 'street', 'city', 'state', 'zip', 'country'];
+    return keys.every((k) => (s[k] || '').toString().trim() !== '');
+  };
+
+  const isPaymentComplete = () => {
+    const p = formik.values.payment as Record<string, any>;
+    const keys = ['cardNumber', 'expiryDate', 'cvv', 'cardholderName'];
+    return keys.every((k) => (p[k] || '').toString().trim() !== '');
+  };
+
+  const handleNext = async () => {
+    // Ensure formik runs validation and update errors
+    const errors = await formik.validateForm();
+
     if (activeStep === 0) {
-      // Validate shipping
-      const shippingErrors = Object.keys(formik.errors.shipping || {});
+      const shippingErrors = Object.keys((errors.shipping as Record<string, any>) || {});
       if (shippingErrors.length > 0) {
-        shippingErrors.forEach((key) => {
-          formik.setFieldTouched(`shipping.${key}`, true);
-        });
+        shippingErrors.forEach((key) => formik.setFieldTouched(`shipping.${key}`));
         return;
       }
     } else if (activeStep === 1) {
-      // Validate payment
-      const paymentErrors = Object.keys(formik.errors.payment || {});
+      const paymentErrors = Object.keys((errors.payment as Record<string, any>) || {});
       if (paymentErrors.length > 0) {
-        paymentErrors.forEach((key) => {
-          formik.setFieldTouched(`payment.${key}`, true);
-        });
+        paymentErrors.forEach((key) => formik.setFieldTouched(`payment.${key}`));
         return;
       }
     }
+
     setActiveStep((prev) => prev + 1);
   };
 
@@ -155,7 +165,7 @@ export const CheckoutPage = () => {
                 Shipping Information
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{xs : 12}}>
                   <TextField
                     fullWidth
                     name="shipping.name"
@@ -167,7 +177,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.shipping?.name && formik.errors.shipping?.name}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{xs : 12, sm : 6}}>
                   <TextField
                     fullWidth
                     name="shipping.email"
@@ -180,19 +190,28 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.shipping?.email && formik.errors.shipping?.email}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{xs : 12, sm : 6}}>
                   <TextField
                     fullWidth
                     name="shipping.phone"
                     label="Phone"
+                    type="tel"
                     value={formik.values.shipping.phone}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      formik.setFieldValue('shipping.phone', value);
+                    }}
                     onBlur={formik.handleBlur}
                     error={formik.touched.shipping?.phone && Boolean(formik.errors.shipping?.phone)}
                     helperText={formik.touched.shipping?.phone && formik.errors.shipping?.phone}
+                    inputProps={{
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                      maxLength: 10,
+                    }}
                   />
                 </Grid>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{xs : 12}}>
                   <TextField
                     fullWidth
                     name="shipping.street"
@@ -204,7 +223,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.shipping?.street && formik.errors.shipping?.street}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{xs : 12, sm : 6}}>
                   <TextField
                     fullWidth
                     name="shipping.city"
@@ -216,7 +235,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.shipping?.city && formik.errors.shipping?.city}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
+                <Grid size={{xs : 12, sm : 3}}>
                   <TextField
                     fullWidth
                     name="shipping.state"
@@ -228,7 +247,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.shipping?.state && formik.errors.shipping?.state}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
+                <Grid size={{xs : 12, sm : 3}}>
                   <TextField
                     fullWidth
                     name="shipping.zip"
@@ -250,7 +269,7 @@ export const CheckoutPage = () => {
                 Payment Information
               </Typography>
               <Grid container spacing={2}>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{xs: 12}}>
                   <TextField
                     fullWidth
                     name="payment.cardholderName"
@@ -262,7 +281,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.payment?.cardholderName && formik.errors.payment?.cardholderName}
                   />
                 </Grid>
-                <Grid size={{ xs: 12 }}>
+                <Grid size={{xs : 12}}>
                   <TextField
                     fullWidth
                     name="payment.cardNumber"
@@ -275,7 +294,7 @@ export const CheckoutPage = () => {
                     inputProps={{ maxLength: 16 }}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{xs: 12, sm: 6}}>
                   <TextField
                     fullWidth
                     name="payment.expiryDate"
@@ -288,7 +307,7 @@ export const CheckoutPage = () => {
                     helperText={formik.touched.payment?.expiryDate && formik.errors.payment?.expiryDate}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+                <Grid size={{xs : 12, sm : 6}}>
                   <TextField
                     fullWidth
                     name="payment.cvv"
@@ -332,7 +351,13 @@ export const CheckoutPage = () => {
                 Place Order
               </Button>
             ) : (
-              <Button variant="contained" onClick={handleNext}>
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={
+                  (activeStep === 0 && !isShippingComplete()) || (activeStep === 1 && !isPaymentComplete())
+                }
+              >
                 Next
               </Button>
             )}

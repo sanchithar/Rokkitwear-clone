@@ -24,11 +24,11 @@ import './Header.scss';
 
 interface HeaderProps {
   cartItemCount?: number;
-  onSearch: (query: string) => void;
-  searchQuery: string;
+  onSearch?: (query: string) => void;
+  searchQuery?: string;
 }
 
-export const Header = ({ cartItemCount = 0, onSearch, searchQuery }: HeaderProps) => {
+export const Header = ({ cartItemCount = 0, onSearch, searchQuery = '' }: HeaderProps) => {
   // const [searchQuery, setSearchQuery] = useState(''); use this when you want to search on submit else pass searchQuery directly from app
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,11 +68,11 @@ export const Header = ({ cartItemCount = 0, onSearch, searchQuery }: HeaderProps
           onSubmit={handleSearch}
           className="header__search"
         >
-          <TextField
+            <TextField
             size="small"
             placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => onSearch(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => onSearch ? onSearch(e.target.value) : undefined}
             className="header__search-input"
             InputProps={{
               endAdornment: (
