@@ -1,16 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '../../components/Header';
 import { HeroSection } from '../../components/HeroSection';
 import { ProductFilters, SortOption, CategoryFilter } from '../../components/ProductFilters';
 import { ProductGrid } from '../../components/ProductGrid';
 import { Product, convertToProduct } from '../../types/product';
-import { useSchoolData, useProductsData } from '../../hooks';
+import { useSchoolData, useProductsData, useSchoolsData } from '../../hooks';
 import { useCart } from '../../context/CartContext';
 import './SchoolLandingPage.scss';
 
-const SCHOOL_ID = '366997'; // Bors House ID
+const SCHOOL_ID = '366997'; // fallback Bors House ID (not used as default anymore)
 
 export const SchoolLandingPage = () => {
   const navigate = useNavigate();
@@ -18,18 +18,32 @@ export const SchoolLandingPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All');
   const [selectedSort, setSelectedSort] = useState<SortOption>('popularity');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | undefined>(undefined);
 
-  // Fetch school details
-  const { data: school, isLoading: schoolLoading, error: schoolError } = useSchoolData(SCHOOL_ID);
+  // Fetch list of schools and selected school details
+  const { data: schoolsList, isLoading: schoolsLoading } = useSchoolsData();
+  const { data: school, isLoading: schoolLoading, error: schoolError } = useSchoolData(selectedSchoolId);
 
-  // Fetch products
-  const { data: backendProducts, isLoading: productsLoading, error: productsError } = useProductsData(SCHOOL_ID);
+  // Fetch products for selected school (undefined => all products)
+  const { data: backendProducts, isLoading: productsLoading, error: productsError } = useProductsData(selectedSchoolId);
 
   // Convert backend products to frontend format
   const products: Product[] = useMemo(() => {
     if (!backendProducts) return [];
     return backendProducts.map(convertToProduct);
   }, [backendProducts]);
+
+  // If URL contains ?schoolId=..., use that as selected school. If missing or 'all', show all products.
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('schoolId');
+    if (!q || q === 'all') {
+      setSelectedSchoolId(undefined);
+    } else {
+      setSelectedSchoolId(q);
+    }
+  }, [location.search]);
 
   // Filter, search and sort products
   const filteredAndSortedProducts = useMemo(() => {
@@ -71,8 +85,10 @@ export const SchoolLandingPage = () => {
     navigate(`/product/${product.id}`);
   };
 
-  // Loading state
-  if (schoolLoading || productsLoading) {
+  // Loading state: schoolLoading only matters when a specific school is selected
+  const isAnyLoading = schoolsLoading || productsLoading || (selectedSchoolId ? schoolLoading : false);
+
+  if (isAnyLoading) {
     return (
       <Box className="school-landing-page">
         <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
@@ -83,14 +99,14 @@ export const SchoolLandingPage = () => {
     );
   }
 
-  // Error state
-  if (schoolError || productsError) {
+  // Error state: only show school error if a specific school was requested
+  if ((selectedSchoolId && schoolError) || productsError) {
     return (
       <Box className="school-landing-page">
         <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
         <Box sx={{ padding: 4 }}>
           <Alert severity="error">
-            {schoolError ? 'Failed to load school details. ' : ''}
+            {selectedSchoolId && schoolError ? 'Failed to load school details. ' : ''}
             {productsError ? 'Failed to load products. ' : ''}
             Please make sure the backend server is running on http://localhost:3333
           </Alert>
@@ -99,25 +115,18 @@ export const SchoolLandingPage = () => {
     );
   }
 
-  // No school data
-  if (!school) {
-    return (
-      <Box className="school-landing-page">
-        <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
-        <Box sx={{ padding: 4 }}>
-          <Typography variant="h5">School not found</Typography>
-        </Box>
-      </Box>
-    );
-  }
+  // Prepare hero content. If no specific school selected, show All Schools.
+  const heroName = selectedSchoolId ? (school?.name ?? 'School') : 'All Schools';
+  const heroLocation = selectedSchoolId ? (school?.location ?? '') : 'Various Locations';
+  const heroBanner = selectedSchoolId ? school?.bannerUrl : undefined;
 
   return (
     <Box className="school-landing-page">
       <Header cartItemCount={getItemCount()} onSearch={setSearchQuery} />
       <HeroSection
-        schoolName={school.name}
-        location={school.location}
-        bannerImage={school.bannerUrl}
+        schoolName={heroName}
+        location={heroLocation}
+        bannerImage={heroBanner}
       />
       <ProductFilters
         onCategoryChange={setSelectedCategory}
@@ -127,7 +136,8 @@ export const SchoolLandingPage = () => {
       />
       <ProductGrid
         products={filteredAndSortedProducts}
-        onCustomize={handleCustomize}
+        onView={handleCustomize}
+        buttonLabel="View"
       />
     </Box>
   );

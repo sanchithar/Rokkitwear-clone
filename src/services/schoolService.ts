@@ -75,6 +75,12 @@ export const getProducts = async (schoolId?: string): Promise<BackendProduct[]> 
   return response.data;
 };
 
+// Get all schools
+export const getAllSchools = async (): Promise<School[]> => {
+  const response = await api.get<School[]>('/schools');
+  return response.data;
+};
+
 // Get single product by ID
 export const getProduct = async (productId: string): Promise<BackendProduct> => {
   const response = await api.get<BackendProduct>(`/products/${productId}`);

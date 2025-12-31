@@ -14,12 +14,14 @@ interface ProductCardProps {
   product: Product;
   onCustomize?: (product: Product) => void;
   onView?: (product: Product) => void;
+  buttonLabel?: string;
 }
 
 export const ProductCard = ({
   product,
   onCustomize,
   onView,
+  buttonLabel,
 }: ProductCardProps) => {
   const handleAction = () => {
     if (onCustomize) {
@@ -28,6 +30,9 @@ export const ProductCard = ({
       onView(product);
     }
   };
+
+  const label =
+    buttonLabel ?? (onCustomize ? 'Customize' : onView ? 'View' : 'Action');
 
   return (
     <Card className="product-card" elevation={2}>
@@ -69,7 +74,7 @@ export const ProductCard = ({
           onClick={handleAction}
           className="product-card__button"
         >
-          {onCustomize ? 'Customize' : 'View'}
+          {label}
         </Button>
       </CardActions>
     </Card>

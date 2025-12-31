@@ -25,7 +25,7 @@ const mockItem = {
   productId: 'p1',
   name: 'Fan Favorite Heavyweight Hooded Unisex Sweatshirt',
   price: 49.99,
-  image: 'https://via.placeholder.com/300x300/764ba2/ffffff?text=Hoodie',
+  image: 'https://m.media-amazon.com/images/I/7178TJGVXCL._AC_UY1100_.jpg',
   selectedColor: 'Jet Black',
   selectedSize: 'L',
   quantity: 2,

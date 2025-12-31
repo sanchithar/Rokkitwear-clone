@@ -9,12 +9,17 @@ import {
   Box,
   Button,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   ShoppingCart as ShoppingCartIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useSchoolsData } from '../../hooks';
 import './Header.scss';
 
 interface HeaderProps {
@@ -24,6 +29,14 @@ interface HeaderProps {
 
 export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { data: schoolsList, isLoading: schoolsLoading } = useSchoolsData();
+
+  // derive current selected school id from URL query param
+  const params = new URLSearchParams(location.search);
+  const currentSchoolId = params.get('schoolId');
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -71,13 +84,45 @@ export const Header = ({ cartItemCount = 0, onSearch }: HeaderProps) => {
         </Box>
 
         {/* Navigation Links */}
-        <Box className="header__nav">
+        <Box className="header__nav" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Button component={Link} to="/" color="inherit">
             Home
           </Button>
-          <Button component={Link} to="/schools" color="inherit">
-            Schools
-          </Button>
+          {/* Schools selector: when selecting a school navigate to /schools?schoolId=... */}
+          {schoolsList && schoolsList.length > 0 ? (
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel id="header-school-select-label">Schools</InputLabel>
+              <Select
+                labelId="header-school-select-label"
+                value={currentSchoolId ?? 'all'}
+                label="Schools"
+                onChange={(e) => {
+                  const id = e.target.value as string;
+                  if (id === 'all') {
+                    navigate('/schools');
+                  } else {
+                    navigate(`/schools?schoolId=${encodeURIComponent(id)}`);
+                  }
+                }}
+                displayEmpty
+                renderValue={(value) => {
+                  const val = value as string;
+                  if (!val || val === 'all') return 'All Schools';
+                  const found = (schoolsList || []).find((s) => s.id === val);
+                  return found ? found.name : 'Schools';
+                }}
+              >
+                <MenuItem value={'all'}>All Schools</MenuItem>
+                {schoolsList.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <Button component={Link} to="/schools" color="inherit">
+              Schools
+            </Button>
+          )}
         </Box>
 
         {/* Cart Icon */}

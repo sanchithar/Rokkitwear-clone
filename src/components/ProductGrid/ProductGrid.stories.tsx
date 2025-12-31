@@ -85,6 +85,7 @@ export const Default: Story = {
   args: {
     products: mockProducts,
     onCustomize: (product) => console.log('Customize:', product),
+    buttonLabel: 'Customize',
   },
 };
 
@@ -92,6 +93,7 @@ export const FewProducts: Story = {
   args: {
     products: mockProducts.slice(0, 3),
     onCustomize: (product) => console.log('Customize:', product),
+    buttonLabel: 'Customize',
   },
 };
 
@@ -99,6 +101,7 @@ export const SingleProduct: Story = {
   args: {
     products: [mockProducts[0]],
     onCustomize: (product) => console.log('Customize:', product),
+    buttonLabel: 'Customize',
   },
 };
 
@@ -112,5 +115,6 @@ export const WithViewAction: Story = {
   args: {
     products: mockProducts,
     onView: (product) => console.log('View:', product),
+    buttonLabel: 'View',
   },
 };

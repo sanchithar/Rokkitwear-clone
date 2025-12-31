@@ -7,12 +7,14 @@ interface ProductGridProps {
   products: Product[];
   onCustomize?: (product: Product) => void;
   onView?: (product: Product) => void;
+  buttonLabel?: string;
 }
 
 export const ProductGrid = ({
   products,
   onCustomize,
   onView,
+  buttonLabel,
 }: ProductGridProps) => {
   return (
     <Container className="product-grid">
@@ -24,6 +26,7 @@ export const ProductGrid = ({
                 product={product}
                 onCustomize={onCustomize}
                 onView={onView}
+                buttonLabel={buttonLabel}
               />
             </Grid>
           ))}
