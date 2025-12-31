@@ -46,7 +46,6 @@ export const Header = ({ cartItemCount = 0, onSearch, searchQuery = '' }: Header
     if (onSearch) {
       onSearch(searchQuery);
     }
-    console.log('search')
   };
 
   return (
