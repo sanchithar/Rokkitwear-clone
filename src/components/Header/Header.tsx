@@ -37,6 +37,7 @@ export const Header = ({ cartItemCount = 0, onSearch, searchQuery = '' }: Header
 
   // derive current selected school id from URL query param
   const params = new URLSearchParams(location.search);
+  //dropdown fix 40-43 value and MenuItem value change
   const schoolIdParam = params.get('schoolId');
   // treat null or empty string as 'all'
   const currentSchoolId = schoolIdParam && schoolIdParam.trim() ? schoolIdParam : 'all';

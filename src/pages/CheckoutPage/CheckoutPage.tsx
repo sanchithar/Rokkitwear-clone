@@ -26,7 +26,7 @@ const validationSchema = yup.object({
   shipping: yup.object({
     name: yup.string().required('Name is required'),
     email: yup.string().email('Invalid email').required('Email is required'),
-    phone: yup.string().required('Phone is required').matches(/^\d+$/, 'Phone must contain only numbers'),
+    phone: yup.number().integer('Please enter a valid number.').required('Please enter a number.'),
     street: yup.string().required('Street address is required'),
     city: yup.string().required('City is required'),
     state: yup.string().required('State is required'),
