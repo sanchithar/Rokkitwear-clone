@@ -1,0 +1,76 @@
+.product-filters {
+  padding: 2rem 0 1rem;
+  background-color: #fafafa;
+
+  &__container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  &__toggle-group {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .MuiToggleButton-root {
+      text-transform: none;
+      border-radius: 20px;
+      padding: 0.375rem 1rem;
+      font-weight: 500;
+      border: 1px solid #ddd;
+      
+      &.Mui-selected {
+        background-color: #1976d2;
+        color: white;
+        border-color: #1976d2;
+
+        &:hover {
+          background-color: #115293;
+        }
+      }
+
+      &:hover {
+        background-color: rgba(25, 118, 210, 0.08);
+      }
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      
+      .MuiToggleButton-root {
+        flex: 1;
+        min-width: fit-content;
+      }
+    }
+  }
+
+  &__sort {
+    min-width: 200px;
+
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+
+    .MuiOutlinedInput-root {
+      background-color: white;
+    }
+  }
+}

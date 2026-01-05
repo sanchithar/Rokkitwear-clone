@@ -1,0 +1,11 @@
+.product-grid {
+  padding: 2rem 0;
+
+  &__container {
+    min-height: 400px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem 0;
+  }
+}
