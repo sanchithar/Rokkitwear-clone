@@ -19,6 +19,10 @@ import { Header } from '../../components/Header';
 import { useCart } from '../../context/CartContext';
 import { ShippingAddress, PaymentInfo } from '../../types/cart';
 import './CheckoutPage.scss';
+import {EmptyCart} from '../../components/CheckoutPage/EmptyCart';
+import { CheckoutStepper } from "../../components/CheckoutPage/CheckoutStepper";
+import { CheckoutActions } from '../..//components/CheckoutPage/CheckoutActions';
+import { OrderSummary } from '../../components/CheckoutPage/OrderSummary';
 
 const validationSchema = yup.object({
   shipping: yup.object({
@@ -79,17 +83,22 @@ export const CheckoutPage = () => {
     },
   });
 
-  const isShippingComplete = () => {
-    const s = formik.values.shipping as Record<string, any>;
-    const keys = ['name', 'email', 'phone', 'street', 'city', 'state', 'zip', 'country'];
-    return keys.every((k) => (s[k] || '').toString().trim() !== '');
-  };
+    const isShippingComplete = () => {
+      const s = formik.values.shipping as Record<string, any>;
+      const keys = ['name', 'email', 'phone', 'street', 'city', 'state', 'zip', 'country'];
+      return keys.every((k) => (s[k] || '').toString().trim() !== '');
+    };
 
-  const isPaymentComplete = () => {
-    const p = formik.values.payment as Record<string, any>;
-    const keys = ['cardNumber', 'expiryDate', 'cvv', 'cardholderName'];
-    return keys.every((k) => (p[k] || '').toString().trim() !== '');
-  };
+    const isPaymentComplete = () => {
+      const p = formik.values.payment as Record<string, any>;
+      const keys = ['cardNumber', 'expiryDate', 'cvv', 'cardholderName'];
+      return keys.every((k) => (p[k] || '').toString().trim() !== '');
+    };
+    const isNextDisabled = () => {
+      if (activeStep === 0) return !isShippingComplete();
+      if (activeStep === 1) return !isPaymentComplete();
+      return false;
+    };
 
   const handleNext = async () => {
     // Ensure formik runs validation and update errors
@@ -117,16 +126,7 @@ export const CheckoutPage = () => {
   };
 
   if (items.length === 0) {
-    return (
-      <Box>
-        <Header cartItemCount={getItemCount()} />
-        <Container sx={{ py: 4 }}>
-          <Alert severity="warning">
-            Your cart is empty. <Button onClick={() => navigate('/')}>Continue Shopping</Button>
-          </Alert>
-        </Container>
-      </Box>
-    );
+    return <EmptyCart cartItemCount={getItemCount()} />;
   }
 
   return (
@@ -137,15 +137,10 @@ export const CheckoutPage = () => {
           Checkout
         </Typography>
 
-        <Stepper activeStep={activeStep} sx={{ my: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        <CheckoutStepper activeStep={activeStep} steps={steps} />
 
         <form onSubmit={formik.handleSubmit}>
+          
           {activeStep === 0 && (
             <Paper sx={{ p: 3, mb: 3 }}>
               <Typography variant="h6" gutterBottom>
@@ -314,42 +309,23 @@ export const CheckoutPage = () => {
           )}
 
           {activeStep === 2 && (
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Order Review
-              </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Items: {items.length}
-              </Typography>
-              <Typography>Subtotal: ${subtotal.toFixed(2)}</Typography>
-              <Typography>Tax: ${tax.toFixed(2)}</Typography>
-              <Typography>Shipping: ${shipping === 0 ? 'FREE' : shipping.toFixed(2)}</Typography>
-              <Typography variant="h6" sx={{ mt: 2 }}>
-                Total: ${total.toFixed(2)}
-              </Typography>
-            </Paper>
+            <OrderSummary
+              itemCount={items.length}
+              subtotal={subtotal}
+              tax={tax}
+              shipping={shipping}
+              total={total}
+            />
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-            <Button disabled={activeStep === 0} onClick={handleBack}>
-              Back
-            </Button>
-            {activeStep === steps.length - 1 ? (
-              <Button variant="contained" type="submit">
-                Place Order
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                disabled={
-                  (activeStep === 0 && !isShippingComplete()) || (activeStep === 1 && !isPaymentComplete())
-                }
-              >
-                Next
-              </Button>
-            )}
-          </Box>
+          <CheckoutActions
+            activeStep={activeStep}
+            totalSteps={steps.length}
+            onBack={handleBack}
+            onNext={handleNext}
+            isNextDisabled={isNextDisabled()}
+          />
+          
         </form>
       </Container>
     </Box>

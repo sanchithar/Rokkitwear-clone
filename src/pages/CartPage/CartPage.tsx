@@ -12,6 +12,7 @@ import { Header } from '../../components/Header';
 import { CartItemCard } from '../../components/CartItemCard';
 import { useCart } from '../../context/CartContext';
 import './CartPage.scss';
+import { EmptyCart } from '../../components/CheckoutPage/EmptyCart';
 
 export const CartPage = () => {
   const navigate = useNavigate();
@@ -22,18 +23,8 @@ export const CartPage = () => {
   const shipping = subtotal > 50 ? 0 : 9.99;
   const total = subtotal + tax + shipping;
 
-  if (items.length === 0) {
-    return (
-      <Box className="cart-page">
-        <Header cartItemCount={getItemCount()} />
-        <Container sx={{ py: 4 }}>
-          <Alert severity="info">
-            Your cart is empty.{' '}
-            <Button onClick={() => navigate('/')}>Continue Shopping</Button>
-          </Alert>
-        </Container>
-      </Box>
-    );
+ if (items.length === 0) {
+    return <EmptyCart cartItemCount={getItemCount()} />;
   }
 
   return (
